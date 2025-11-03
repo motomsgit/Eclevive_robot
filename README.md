@@ -1,6 +1,6 @@
-# メカナムロボット - ZED2i + nvblox + Nav2 自律ナビゲーションシステム
+# Eclevive Robot - ZED2i + nvblox + Nav2 自律ナビゲーションシステム
 
-ROS2 Humbleベースの完全自律ナビゲーションシステム。NVIDIA Isaac ROS nvbloxによる3Dマッピング、ZED2i Visual SLAM、Nav2経路計画を統合しています。
+メカナムホイールとロボットアームを搭載したロボット。ROS2 Humbleベースの完全自律ナビゲーションシステム。NVIDIA Isaac ROS nvbloxによる3Dマッピング、ZED2i Visual SLAM、Nav2経路計画を統合しています。
 
 ## システム概要
 
