@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+<robot name="mechanum_robot">
+  <link name="body_link"/>
+  
+  <link name="box_link">  
+    <visual>
+      <geometry>
+        <mesh filename="package://mecanum_robot/meshes/body.dae"/>
+      </geometry>
+      <origin xyz="0.0 0.0 0" rpy="0.0 0.0 0"/>
+    </visual>
+  </link>
+
+  <joint name="body_joint" type="fixed">
+    <parent link="body_link"/>
+    <child link="box_link"/>
+    <origin xyz="0 0 0.090425"/>  
+    <axis xyz="0 0 0"/>
+  </joint>
+  
+  <link name="wheel_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://mecanum_robot/meshes/wheels.dae"/>
+      </geometry>
+      <origin xyz="0.0 0.0 0" rpy="0.0 0.0 0"/>
+    </visual>
+  </link>
+
+  <joint name="wheel_joint" type="fixed">
+    <parent link="body_link"/>
+    <child link="wheel_link"/>
+    <origin xyz="0 0 0 "/>  
+    <axis xyz="0 0 0"/>
+  </joint>
+
+  <link name="zed2_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://mecanum_robot/meshes/zed2.dae"/>
+      </geometry>
+      <origin xyz="0.0 0.0 0" rpy="0.0 0.0 0"/>
+    </visual>
+  </link>
+
+  <joint name="zed2_joint" type="fixed">
+    <parent link="body_link"/>
+    <child link="zed2_link"/>
+    <origin xyz="0.1 0 0.214 "/>  
+    <axis xyz="0 0 0"/>
+  </joint>
+
+  <link name="arm_pan_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://mecanum_robot/meshes/arm_pan.dae"/>
+      </geometry>
+      <origin xyz="0.0 0.0 0" rpy="0.0 0.0 0"/>
+    </visual>
+  </link>
+
+  <!--<joint name="arm_pan_joint" type="fixed">
+    <parent link="body_link"/>
+    <child link="arm_pan_link"/>
+    <origin xyz="-0.065 0 0.22 "/>  
+    <axis xyz="0 0 1"/>
+    <limit lower="-1.0" upper="1.0" effort="0" velocity="0"/>
+  </joint>-->
+  <joint name="arm_pan_joint" type="revolute">
+    <parent link="body_link"/>
+    <child link="arm_pan_link"/>
+    <origin xyz="-0.065 0 0.22 "/>  
+    <axis xyz="0 0 1"/>
+    <limit lower="-1.0" upper="1.0" effort="0" velocity="0"/>
+  </joint>
+
+  <link name="arm_tilt1_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://mecanum_robot/meshes/arm_tilt1.dae"/>
+      </geometry>
+      <origin xyz="0.0 0.0 0" rpy="0.0 0.0 0"/>
+    </visual>
+  </link>
+
+  <!--<joint name="arm_tilt1_joint" type="fixed">
+    <parent link="arm_pan_link"/>
+    <child link="arm_tilt1_link"/>
+    <origin xyz="0.01 0 0.02 "/>  
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.6" upper="1.6" effort="0" velocity="0"/>
+  </joint>-->
+
+  <joint name="arm_tilt1_joint" type="revolute">
+    <parent link="arm_pan_link"/>
+    <child link="arm_tilt1_link"/>
+    <origin xyz="0.01 0 0.02 "/>  
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.6" upper="1.6" effort="0" velocity="0"/>
+  </joint>
+  
+
+  <link name="arm_tilt2_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://mecanum_robot/meshes/arm_tilt2.dae"/>
+      </geometry>
+      <origin xyz="0.0 0.0 0" rpy="0.0 0.0 0"/>
+    </visual>
+  </link>
+
+  
+  <!--<joint name="arm_tilt2_joint" type="fixed">
+    <parent link="arm_tilt1_link"/>
+    <child link="arm_tilt2_link"/>
+    <origin xyz="0 0 0.2104 " rpy="0.0 1.0 0"/>  
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.6" upper="1.5" effort="0" velocity="0"/>
+  </joint>-->
+
+  <joint name="arm_tilt2_joint" type="revolute">
+    <parent link="arm_tilt1_link"/>
+    <child link="arm_tilt2_link"/>
+    <origin xyz="0 0 0.2104 "/>  
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.6" upper="1.5" effort="0" velocity="0"/>
+  </joint>
+
+  
+  <link name="gripper_link">
+
+  </link>
+
+  <!--<joint name="gripper_joint" type="fixed">
+    <parent link="arm_tilt2_link"/>
+    <child link="gripper_link"/>
+    <origin xyz="0 0.01 0.18 " rpy="0.0 -1.62 0.0"/>  
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.2" upper="1.0" effort="0" velocity="0"/>
+  </joint>-->
+
+  <joint name="gripper_joint" type="revolute">
+    <parent link="arm_tilt2_link"/>
+    <child link="gripper_link"/>
+    <origin xyz="0 0.01 0.18 " rpy="0.0 -1.62 0.0"/>  
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.2" upper="1.0" effort="0" velocity="0"/>
+  </joint>
+
+</robot>

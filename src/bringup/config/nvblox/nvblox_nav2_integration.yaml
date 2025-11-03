@@ -1,0 +1,65 @@
+/**:
+  ros__parameters:
+    # ========================================
+    # Nav2統合設定
+    # ========================================
+
+    # Global Frame設定（Nav2がmapフレームを期待）
+    global_frame: "map"
+
+    # Occupancy Grid出力を有効化
+    # nvbloxはデフォルトでstatic_occupancy_layerを~/static_occupancy_layerに出力
+    # これを/mapにリマップして使用
+
+    # Map publishing設定
+    publish_occupancy_layer: true           # Occupancy Grid出力を有効化
+    publish_layer_rate_hz: 5.0             # マップ公開頻度（Hz）
+
+    # Map resolution
+    voxel_size: 0.05                       # 解像度5cm（Nav2と一致）
+
+    # ========================================
+    # LiDAR統合設定（2025-10-21追加）
+    # ========================================
+    use_lidar: true                        # LiDAR統合を有効化
+    lidar_width: 720                       # マージ済みスキャンの点数（前後LiDAR合計）
+    lidar_height: 1                        # 2D LiDARなので高さは1
+    lidar_min_valid_range_m: 0.1           # 最小有効範囲
+    lidar_max_valid_range_m: 20.0          # 最大有効範囲（LiDARの仕様に合わせる）
+
+    # LiDAR統合頻度
+    integrate_lidar_rate_hz: 30.0          # スキャン更新レート（30Hz程度）
+
+    # ========================================
+    # TSDF設定（静的マッピング用）
+    # ========================================
+    mapping_type: "static_tsdf"            # TSDFベースの静的マッピング
+
+    # ========================================
+    # Occupancy Grid変換設定
+    # ========================================
+    static_mapper:
+      # Occupancy確率設定
+      free_region_occupancy_probability: 0.3        # 空き領域の確率（低め）
+      occupied_region_occupancy_probability: 0.9    # 占有領域の確率（高め）
+      unobserved_region_occupancy_probability: 0.5  # 未観測領域の確率（中間）
+
+      # Occupancy判定の幅
+      occupied_region_half_width_m: 0.1    # 障害物判定の半幅（10cm）
+
+      # LiDAR統合距離設定（2025-10-21追加）
+      lidar_projective_integrator_max_integration_distance_m: 10.0  # LiDAR統合最大距離
+
+    # ========================================
+    # Map更新頻度の調整
+    # ========================================
+    # Occupancy Grid更新頻度
+    decay_tsdf_rate_hz: 5.0                # TSDF減衰レート
+    clear_map_outside_radius_rate_hz: 1.0  # マップクリア頻度
+
+    # ========================================
+    # QoS設定（Nav2互換性）
+    # ========================================
+    # Nav2はTransient Localでマップを期待
+    # nvbloxのデフォルト出力はVolatileなので、
+    # static_transform_publisherやtopic_toolsで変換が必要

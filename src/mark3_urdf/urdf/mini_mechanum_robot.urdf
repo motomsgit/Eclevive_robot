@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<robot name="mini_mechanum_robot">
+  <link name="base_link"/>
+  <link name="body_link">
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <box size="0.30 0.262 0.238"/>
+      </geometry>
+    </collision>  
+    <visual>
+      <geometry>
+        <mesh filename="package://mecanum_robot/meshes/mini_mecanum_robot1.dae"/>
+      </geometry>
+      <origin xyz="0.0 0.0 0" rpy="0 0 3.14159"/>
+    </visual>
+  </link>
+  <joint name="body_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="body_link"/>
+    <origin xyz="0 0 -0.10"/>  
+    <axis xyz="0 0 0"/>
+  </joint> 
+
+</robot>

@@ -1,0 +1,154 @@
+slam_toolbox:
+  ros__parameters:
+
+    # Plugin params
+    solver_plugin: solver_plugins::CeresSolver
+    ceres_linear_solver: SPARSE_NORMAL_CHOLESKY
+    ceres_preconditioner: SCHUR_JACOBI
+    ceres_trust_strategy: LEVENBERG_MARQUARDT
+    ceres_dogleg_type: TRADITIONAL_DOGLEG
+    ceres_loss_function: None
+
+    # ROS Parameters
+    odom_frame: zed_odom
+    map_frame: map
+    base_frame: zed_camera_link
+    scan_topic: /scan_filtered
+    use_map_saver: true
+    mode: mapping #localization
+
+    # TF and Topic Synchronization Parameters
+    transform_tolerance: 0.2  # Tolerance for transform lookup
+    transform_timeout: 2.0    # Increased timeout for transform operations
+    tf_buffer_duration: 120.0 # Extended TF buffer for better synchronization
+    tf_timeout: 2.0          # TF specific timeout
+    transform_timeout_threshold: 0.1  # Transform age threshold
+
+    # if you'd like to immediately start continuing a map at a given pose
+    # or at the dock, but they are mutually exclusive, if pose is given
+    # will use pose
+    #map_file_name: test_steve
+    # map_start_pose: [0.0, 0.0, 0.0]
+    #map_start_at_dock: true
+
+    debug_logging: false
+    throttle_scans: 1
+    transform_publish_period: 0.02 #if 0 never publishes odometry
+    map_update_interval: 0.5  # Faster map updates for rotation tracking
+    resolution: 0.03 #0.05
+    restamp_tf: true
+    min_laser_range: 0.0 #for rastering images
+    max_laser_range: 20.0 #for rastering images
+    minimum_time_interval: 0.005  # Reduced for better temporal resolution during rotation
+    stack_size_to_use: 40000000 #// program needs a larger stack size to serialize large maps
+    enable_interactive_mode: true
+
+    # Temporal Synchronization Parameters
+    max_time_difference: 0.5  # Maximum time difference for synchronization
+    scan_processing_timeout: 3.0  # Timeout for scan processing
+    temporal_smoothing: true      # Enable temporal smoothing
+
+    # General Parameters
+    use_scan_matching: true
+    use_scan_barycenter: true
+    minimum_travel_distance: 0.03  # Further reduced for rotation tracking
+    minimum_travel_heading: 0.017  # Reduced to ~1 degree for fine rotation tracking
+    scan_buffer_size: 70          # Increased for rotation smoothing
+    scan_buffer_maximum_scan_distance: 10.0
+
+    # Scan Processing Optimization
+    enable_scan_preprocessing: true
+    scan_outlier_rejection: true
+    scan_range_filter_enable: true
+    scan_intensity_filter_enable: false
+
+    # Message Filter Parameters (Optimized for TF-Topic Sync)
+    message_filter_queue_size: 100        # Increased queue size
+    message_filter_delay_threshold: 2.0   # Increased delay threshold
+    message_filter_target_frame_tolerance: 0.1  # Frame tolerance
+    message_filter_cache_time: 5.0        # Cache duration
+    message_filter_sync_tolerance: 0.05   # Synchronization tolerance
+
+    # Additional Message Filter Settings
+    enable_message_filter_diagnostics: true
+    message_filter_drop_policy: "drop_oldest"  # Policy when queue full
+    message_filter_tf_cache_time: 10.0    # TF cache for message filter
+
+    # Advanced Synchronization Parameters
+    enable_approximate_sync: true         # Use approximate time synchronization
+    approximate_sync_queue_size: 50       # Queue size for approximate sync
+    approximate_sync_max_interval: 0.1    # Maximum time interval for sync
+
+    # TF-Specific Synchronization Settings
+    tf_message_filter_tolerance: 0.1      # Tolerance for TF message filter
+    tf_extrapolation_limit: 0.2           # TF extrapolation limit
+    tf_static_cache_size: 1000            # Static TF cache size
+    tf_dynamic_cache_size: 100            # Dynamic TF cache size
+
+    # Performance and Robustness Settings
+    enable_scan_timestamp_validation: true  # Validate scan timestamps
+    enable_tf_timestamp_validation: true    # Validate TF timestamps
+    timestamp_tolerance: 0.05              # Timestamp tolerance
+    enable_graceful_degradation: true      # Enable graceful degradation on sync issues
+
+    # Debugging and Monitoring
+    enable_sync_diagnostics: true         # Enable synchronization diagnostics
+    sync_diagnostic_period: 5.0           # Diagnostic publish period
+    log_sync_issues: true                 # Log synchronization issues
+    sync_warning_threshold: 0.2           # Warning threshold for sync delays
+    link_match_minimum_response_fine: 0.15  # Higher threshold for better edge matching
+    link_scan_maximum_distance: 1.0  # Reduced for tighter scan association during rotation
+    loop_search_maximum_distance: 3.0
+    do_loop_closing: true
+    loop_match_minimum_chain_size: 10
+    loop_match_maximum_variance_coarse: 3.0
+    loop_match_minimum_response_coarse: 0.40  # Increased for stricter loop closure
+    loop_match_minimum_response_fine: 0.50    # Increased for stricter loop closure
+
+    # Correlation Parameters - Correlation Parameters
+    correlation_search_space_dimension: 0.5
+    correlation_search_space_resolution: 0.005  # Finer resolution for rotation
+    correlation_search_space_smear_deviation: 0.05  # Reduced smearing for sharper features
+
+    # Correlation Parameters - Loop Closure Parameters
+    loop_search_space_dimension: 8.0
+    loop_search_space_resolution: 0.05
+    loop_search_space_smear_deviation: 0.03
+
+    # Scan Matcher Parameters
+    distance_variance_penalty: 0.5
+    angle_variance_penalty: 2.0  # Increased to prioritize rotation accuracy
+
+    fine_search_angle_offset: 0.00175  # Reduced to 0.1 degree for finer rotation resolution
+    coarse_search_angle_offset: 0.349
+    coarse_angle_resolution: 0.0175    # Reduced to 1 degree for better rotation matching
+    minimum_angle_penalty: 0.95        # Increased for stricter angle matching
+    minimum_distance_penalty: 0.5
+    use_response_expansion: true
+    min_pass_through: 2
+    occupancy_threshold: 0.1
+
+    # Rotation-specific optimization parameters
+    # These parameters improve wall edge tracking during robot rotation
+    max_scan_range: 15.0              # Limit range for more reliable rotation matching
+    angular_update_min_delta: 0.017   # ~1 degree minimum for angular updates
+    linear_update_min_delta: 0.02     # 2cm minimum for linear updates
+
+    # Enhanced scan matching for rotation scenarios
+    scan_matching_min_distance: 0.02  # Minimum distance for scan matching
+    scan_matching_min_angle: 0.017    # ~1 degree minimum angle for scan matching
+
+    # Odometry weighting (trusts ZED VO more during rotation)
+    translation_variance: 0.001       # Low variance = trust odometry for translation
+    rotation_variance: 0.005          # Higher than translation but still trusted for rotation
+
+    # Feature matching parameters for better edge detection
+    use_feature_matching: true        # Enable feature-based matching
+    feature_match_threshold: 0.8      # High threshold for confident matches
+
+    # Temporal coherence (smooth rotation tracking)
+    use_velocity_smoothing: true      # Smooth velocity estimates
+    velocity_smoothing_window: 2 #5      # 5-scan window for smoothing
+
+    # Graph optimization frequency
+    optimization_skip_scans: 3        # Optimize graph every 3 scans during rotation
