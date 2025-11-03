@@ -10,6 +10,15 @@ __pycache__/
 *.so
 .Python
 
+# バイナリファイル
+*.stl
+*.dae
+*.gif
+*.vvm
+*.db3
+*.bag
+*.mcap
+
 # IDEs
 .vscode/
 .idea/
