@@ -1,19 +1,30 @@
 #!/usr/bin/env python3
 """
-ZED2i + nvblox + Nav2 統合起動ファイル
+ZED2i + nvblox + Nav2 統合起動ファイル (NITROS対応版)
 
-このlaunchファイルは、完全な自律ナビゲーションシステムを起動します：
-- ZED2iカメラ（Visual SLAM、人体骨格検出）
-- NVIDIA Isaac ROS nvblox（3Dマッピング、拡張範囲14m）
+このlaunchファイルは、NITROS (Isaac ROS高速通信)を有効活用できる完全な自律ナビゲーションシステムを起動します：
+- ZED2iカメラ（Visual SLAM、人体骨格検出）with NITROS
+- NVIDIA Isaac ROS nvblox（3Dマッピング、拡張範囲14m）with NITROS
 - Navigation2スタック（自律ナビゲーション）
 - LiDAR前後（障害物検出）
 - PS5コントローラー（テレオペレーション）
 - すべてのデバイス・センサー
 
 使用方法:
-  ros2 launch bringup zed2i_nvblox_nav2_launch.py
+  # NITROS有効（デフォルト、推奨）
+  ros2 launch bringup nitros_zed2i_nvblox_nav2_launch.py
+
+  # IPC有効（NITROS無効、従来方式）
+  ros2 launch bringup nitros_zed2i_nvblox_nav2_launch.py enable_ipc:=true
+
+  # 可視化付き
+  ros2 launch bringup nitros_zed2i_nvblox_nav2_launch.py enable_visualization:=true
 
 注意:
+  - デフォルトでNITROS有効（enable_ipc:=false）
+  - enable_ipc:=false でNITROS有効化（Isaac ROS高速通信、省略可）
+  - enable_ipc:=true で従来のIPC通信（互換性優先）
+  - NITROSはZED→nvblox間の画像転送を高速化（GPU Direct）
   - AMCLは使用しません（nvbloxが map -> zed_odom TFを提供）
   - 自己位置推定はZED Visual Odometry + nvbloxで実現
   - コストマップはnvbloxのESDF点群とLiDARスキャンから生成
@@ -47,17 +58,19 @@ def generate_launch_description():
     )
     autostart = LaunchConfiguration('autostart', default='true')
     enable_visualization = LaunchConfiguration('enable_visualization', default='false')
+    enable_ipc = LaunchConfiguration('enable_ipc', default='false')
 
     # ========================================
-    # 1. ZED2i + nvblox + All Devices Launch
+    # 1. ZED2i + nvblox + All Devices Launch (with enable_ipc parameter)
     # ========================================
-    # すべてのセンサー、nvblox、デバイスを起動
+    # すべてのセンサー、nvblox、デバイスを起動（NITROS対応）
     zed_nvblox_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(bringup_dir, 'launch', 'zed2i_nvblox_fixed.launch.py')
+            os.path.join(bringup_dir, 'launch', 'nitros_zed2i_nvblox_fixed.launch.py')
         ),
         launch_arguments={
             'enable_visualization': enable_visualization,
+            'enable_ipc': enable_ipc,
         }.items()
     )
 
@@ -88,11 +101,12 @@ def generate_launch_description():
     startup_log = LogInfo(msg=TextSubstitution(text=
         '\n========================================\n'
         'ZED2i + nvblox + Nav2 統合システム起動\n'
+        '(NITROS対応版)\n'
         '========================================\n'
         '\n起動コンポーネント:\n'
-        '  ✓ ZED2i Camera (Visual Odometry + Body Tracking)\n'
+        '  ✓ ZED2i Camera (Visual Odometry + Body Tracking) [NITROS]\n'
         '  ✓ ZED ZUPT Filter (Odometry Stabilization)\n'
-        '  ✓ nvblox (3D Mapping, Extended Range: 14m)\n'
+        '  ✓ nvblox (3D Mapping, Extended Range: 14m) [NITROS]\n'
         '  ✓ LiDAR Front/Back + Merger + Filter\n'
         '  ✓ PS5 Controller + Mecanum Control\n'
         '  ✓ micro-ROS Agent\n'
@@ -103,6 +117,10 @@ def generate_launch_description():
         '      - Stop Zone: 0.25m (緊急停止)\n'
         '      - Slowdown Zone: 0.45m (40%減速)\n'
         '      - Approach Zone: 1.5秒先予測\n'
+        '\nNITROS設定:\n'
+        '  - enable_ipc=false: NITROS有効（Isaac ROS高速通信）\n'
+        '  - enable_ipc=true: IPC有効（従来方式）\n'
+        '  - ZED→nvblox間の画像転送を高速化（GPU Direct）\n'
         '\n座標系構成:\n'
         '  map (nvblox global_frame)\n'
         '    └─ odom (ZED2i map_frame - Visual SLAM親フレーム)\n'
@@ -126,7 +144,7 @@ def generate_launch_description():
         period=10.0,
         actions=[LogInfo(msg=TextSubstitution(text=
             '\n========================================\n'
-            'システム起動完了！\n'
+            'システム起動完了！(NITROS版)\n'
             '========================================\n'
             '\n確認コマンド:\n'
             '  # TF確認\n'
@@ -134,7 +152,7 @@ def generate_launch_description():
             '  ros2 run tf2_ros tf2_echo map zed_camera_link\n'
             '\n  # トピック確認\n'
             '  ros2 topic hz /nvblox_node/esdf_pointcloud\n'
-            '  ros2 topic hz /merged_scan_filtered\n'
+            '  ros2 topic hz /scan_filtered\n'
             '  ros2 topic hz /cmd_vel\n'
             '\n  # ノード確認\n'
             '  ros2 node list | grep -E "nvblox|controller|planner|collision"\n'
@@ -145,6 +163,9 @@ def generate_launch_description():
             '  ros2 topic hz /cmd_vel_monitored\n'
             '  ros2 topic echo /polygon_stop\n'
             '  ros2 topic echo /polygon_slowdown\n'
+            '\n  # NITROS動作確認\n'
+            '  ros2 topic info /zed/zed_node/rgb/image_rect_color/nitros\n'
+            '  ros2 topic info /zed/zed_node/depth/depth_registered/nitros\n'
             '\nナビゲーション開始方法:\n'
             '  1. RViz2でゴールを設定\n'
             '  2. または、ZED Goal Publisherでジェスチャー指示\n'
@@ -154,6 +175,10 @@ def generate_launch_description():
             '  - 0.25m以内: 緊急停止\n'
             '  - 0.45m以内: 40%減速\n'
             '  - 1.5秒先: 動的予測回避\n'
+            '\nNITROSパフォーマンス:\n'
+            '  - GPU Direct通信により画像転送が高速化\n'
+            '  - CPU負荷が低減\n'
+            '  - レイテンシが改善\n'
             '========================================\n'
         ))]
     )
@@ -180,6 +205,12 @@ def generate_launch_description():
             'enable_visualization',
             default_value='false',
             description='Enable RViz2 visualization',
+            choices=['true', 'false']
+        ),
+        DeclareLaunchArgument(
+            'enable_ipc',
+            default_value='false',
+            description='Enable IPC (Intra-Process Communication). Set to false for NITROS (recommended)',
             choices=['true', 'false']
         ),
 

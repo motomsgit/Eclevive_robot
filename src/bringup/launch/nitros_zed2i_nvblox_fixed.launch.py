@@ -26,10 +26,19 @@ ZED2i Isaac ROS nvblox + All Devices Integration Launch File (Complete System)
   11. RViz2（オプション）
 
 使用方法:
-  ros2 launch bringup zed2i_nvblox_fixed.launch.py
+  # NITROS有効（デフォルト、推奨）
+  ros2 launch bringup nitros_zed2i_nvblox_fixed.launch.py
+
+  # IPC有効（NITROS無効、従来方式）
+  ros2 launch bringup nitros_zed2i_nvblox_fixed.launch.py enable_ipc:=true
 
 オプション:
-  ros2 launch bringup zed2i_nvblox_fixed.launch.py enable_visualization:=true
+  ros2 launch bringup nitros_zed2i_nvblox_fixed.launch.py enable_visualization:=true
+
+注意:
+  - デフォルトでNITROS有効（enable_ipc:=false）
+  - enable_ipc:=false でNITROS有効化（Isaac ROS高速通信、GPU Direct、省略可）
+  - enable_ipc:=true で従来のIPC通信（互換性優先）
 """
 
 import os
@@ -57,7 +66,11 @@ def launch_setup(context, *args, **kwargs):
     camera_name = LaunchConfiguration('camera_name').perform(context)
     camera_model = LaunchConfiguration('camera_model').perform(context)
     enable_visualization = LaunchConfiguration('enable_visualization').perform(context)
+    enable_ipc = LaunchConfiguration('enable_ipc').perform(context)
     log_level = LaunchConfiguration('log_level').perform(context)
+
+    # Convert enable_ipc string to boolean
+    use_intra_process_comms = (enable_ipc.lower() == 'true')
 
     # Package directories
     zed_wrapper_dir = get_package_share_directory('zed_wrapper')
@@ -136,6 +149,9 @@ def launch_setup(context, *args, **kwargs):
             #   map_frame: 'odom' (parent frame for Visual Odometry)
             #   odometry_frame: 'zed_camera_origin' (intermediate odometry frame)
             'sensors.publish_imu_tf': False,
+            # NITROS settings
+            'debug.disable_nitros': False,  # Enable NITROS (Isaac ROS zero-copy GPU Direct)
+            'debug.debug_nitros': False,    # Disable NITROS debug messages
         }
     ]
 
@@ -145,7 +161,7 @@ def launch_setup(context, *args, **kwargs):
         plugin='stereolabs::ZedCamera',
         name='zed_node',
         parameters=zed_node_params,
-        extra_arguments=[{'use_intra_process_comms': False}]  # CRITICAL: Must be False for NITROS compatibility
+        extra_arguments=[{'use_intra_process_comms': use_intra_process_comms}]  # Dynamic: False for NITROS, True for IPC
     )
 
     # Load ZED node into container with delay
@@ -336,6 +352,9 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # Topic remappings for ZED and Nav2
+    # NOTE: NITROS uses negotiated interfaces, NOT different topic names
+    # NITROS is enabled/disabled by use_intra_process_comms parameter
+    # Topic names remain the same regardless of NITROS mode
     nvblox_remappings = [
         ('camera_0/depth/image', f'/{zed_namespace}/zed_node/depth/depth_registered'),
         ('camera_0/depth/camera_info', f'/{zed_namespace}/zed_node/depth/camera_info'),
@@ -452,6 +471,8 @@ def launch_setup(context, *args, **kwargs):
     # Log Messages
     # ========================================
 
+    nitros_mode_text = "NITROS (GPU Direct)" if not use_intra_process_comms else "IPC (CPU Copy)"
+
     actions.append(LogInfo(msg=TextSubstitution(text=
         '\n========================================\n'
         'Complete Robot System Launch\n'
@@ -459,6 +480,7 @@ def launch_setup(context, *args, **kwargs):
         f'Camera: {camera_model}\n'
         f'Namespace: {zed_namespace}\n'
         f'Container: {container_name}\n'
+        f'Communication Mode: {nitros_mode_text}\n'
         '\nEnabled Components:\n'
         '  ✓ ZED2i Camera (Visual SLAM + Body Tracking)\n'
         '  ✓ ZED ZUPT Filter (Odometry Stabilization)\n'
@@ -468,6 +490,10 @@ def launch_setup(context, *args, **kwargs):
         '  ✓ micro-ROS Agent (Microcontroller)\n'
         '  ✓ ZED Goal Publisher (Gesture Control)\n'
         '  ✓ Safety Sensor\n'
+        '\nNITROS Note:\n'
+        '  NITROS uses negotiated interfaces (same topic names)\n'
+        '  enable_ipc=false: NITROS enabled (GPU Direct)\n'
+        '  enable_ipc=true: IPC enabled (CPU copy)\n'
         '========================================\n'
     )))
 
@@ -542,6 +568,13 @@ def generate_launch_description():
             'enable_visualization',
             default_value='false',
             description='Enable RViz2 visualization',
+            choices=['true', 'false']
+        ),
+
+        DeclareLaunchArgument(
+            'enable_ipc',
+            default_value='false',
+            description='Enable IPC (Intra-Process Communication). Set to false for NITROS (recommended)',
             choices=['true', 'false']
         ),
 
